@@ -23,29 +23,31 @@ public class BaseTest {
 
     @BeforeMethod
     public void setUp() {
-        // Path to the driver you just placed in your project
-        String driverPath = System.getProperty("user.dir") + File.separator + "drivers" + File.separator + "chromedriver.exe";
-        System.setProperty("webdriver.chrome.driver", driverPath);
-
+        // 1. Setup Chrome Options
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new"); // Critical for GitHub deployment
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--window-size=1920,1080");
         options.addArguments("--remote-allow-origins=*");
-        // Helps bypass some network-related startup lags
-        options.addArguments("--disable-extensions");
 
+        // 2. Initialize WebDriver (ONLY ONCE)
+        // Note: If you use WebDriverManager or have the driver in your PATH,
+        // you don't need the System.setProperty line.
         driver = new ChromeDriver(options);
+
+        // 3. Initialize Page Objects
         coursesPage = new CoursesPage(driver);
         loginPage = new LoginPage(driver);
         cartPage = new CartPage(driver);
 
+        // 4. Configure Browser & Timeouts
         driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10)); // 100 is too long; 10 is standard
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(100));
-
-        wait = new WebDriverWait(driver, Duration.ofSeconds(100));
-
+        // 5. Navigate to URL
         driver.get("https://eyouthlearning.com/");
-
-
     }
     @AfterSuite
     public void generateAndOpenAllureReport() {
